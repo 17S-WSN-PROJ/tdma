@@ -1,0 +1,3 @@
+#define DEFAULT_CHANNEL 13
+#define HOST_MAC 0
+#define DEFAULT_CLIENT_MAC 1
