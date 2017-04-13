@@ -41,6 +41,7 @@
 // otherwise use the coded value
 #define DEFAULT_CHANNEL  	26
 #define MAC_ADDRESS		0x2	
+#define HOLD_TIME 50
 
 
 uint8_t sbuf[4];
@@ -49,9 +50,10 @@ tdma_info rx_tdma_fd;
 
 uint8_t rx_buf[TDMA_MAX_PKT_SIZE];
 uint8_t tx_buf[TDMA_MAX_PKT_SIZE];
-
+uint8_t serial_buf[TDMA_MAX_PKT_SIZE]; 
 uint32_t mac_address;
 
+const char start_str[5] = "*seq\0";
 
 nrk_task_type RX_TASK;
 NRK_STK rx_task_stack[NRK_APP_STACKSIZE];
@@ -89,7 +91,7 @@ int main ()
   uint8_t ds;
   nrk_setup_ports ();
   nrk_setup_uart (UART_BAUDRATE_115K2);
-
+	setup_uart1(UART_BAUDRATE_115K2); 
   nrk_init ();
 
   nrk_led_clr (0);
@@ -180,18 +182,70 @@ void tx_task ()
 	int8_t v,fd;
 	nrk_sig_mask_t ret;
 	nrk_time_t t;
-
-
+  uint8_t flag = 0;
+  char tmp; 
+  nrk_time_t cur_time; 
 	printf ("tx_task PID=%d\r\n", nrk_get_pid ());
 
 	while (!tdma_started ())
 		nrk_wait_until_next_period ();
-
+		
+  nrk_gpio_set(NRK_PORTB_3); 
 	while (1) {
 		nrk_led_clr(RED_LED);
-		sprintf (tx_buf, "Dogrusoz Emre Node MAC: %u\n", MAC_ADDRESS);
-    	len = strlen (tx_buf) + 1;
-		v = tdma_send (&tx_tdma_fd, &tx_buf, len, TDMA_BLOCKING);
+	  //Implement a slight delay so we definitely get data from the IMU... 
+    nrk_led_clr(GREEN_LED); 
+    delay(HOLD_TIME); 
+    nrk_led_set(GREEN_LED);
+    nrk_time_get(&cur_time);
+    //Set the GPIO high so the IMU hands over data.
+    nrk_gpio_set(NRK_PORTB_3); 
+    tx_buf[0]=MAC_ADDRESS;
+    i = 0;  
+    flag = 0; 
+    printf("\r\n"); 
+    do{
+      tmp = getc1();
+      //printf("%c", tmp); 
+      nrk_gpio_clr(NRK_PORTB_3); 
+      if(tmp == '*')
+        flag = 1; 
+      if(!flag)
+        continue; 
+      if((tmp <= '9' && tmp >= '0') || tmp == ',' || 
+        tmp == '.' || tmp == '-' || (tmp >= 'a' && tmp <= 'z')
+        || tmp == '*'/* || tmp == '#'*/){
+        if(i >=4){
+          printf("%c",tmp); 
+        }
+        tx_buf[i] = tmp; 
+        i++; 
+        //Check for presence of entire start string
+        if(i ==4){
+          tx_buf[4] == '\0'; 
+          //Exit loop if start str found
+    //			printf("-%s-|%s|<Testing! %d>",start_str,tx_buf,
+    //							strncmp(start_str, tx_buf,4)); 
+          if(strncmp(start_str, tx_buf, 4)){
+             
+            //Make sure not to send anything
+            i = 0; 
+            break; 
+          }
+        }
+      }
+    }while(tmp != '#'); 
+    printf("\r\n"); 
+    //Don't transmit if we don't have a full packet 
+    if(i < 30){
+      sprintf(tx_buf, "Damn, no data!");
+      i = strlen(tx_buf);  
+      //memset(tx_buf, 0, TDMA_MAX_PKT_SIZE); 
+     // continue; 
+    }
+    
+    	len = i - 4;
+		v = tdma_send (&tx_tdma_fd, tx_buf + 4, len, TDMA_BLOCKING);
 		if (v == NRK_OK) {
 			printf("packet sent len=%d \r\n",len);
 		}
