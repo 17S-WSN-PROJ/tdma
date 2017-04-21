@@ -40,8 +40,9 @@
 // if SET_MAC is 0, then read MAC from EEPROM
 // otherwise use the coded value
 #define DEFAULT_CHANNEL  	26
-#define MAC_ADDRESS		0x2	
-#define HOLD_TIME 50
+#define MAC_ADDRESS		0x2
+//TODO: shorten this futher... we're still missing points from the IMU anyway
+#define HOLD_TIME 50//100//50
 
 
 uint8_t sbuf[4];
@@ -159,7 +160,7 @@ void rx_task ()
 		v = tdma_recv (&rx_tdma_fd, &rx_buf, &len, TDMA_BLOCKING);
 		if (v == NRK_OK) {
 
-		printf("ActualRssi:  %d, energyDetectionLevel:  %d, linkQualityIndication:  %d\r\n",
+	/*	printf("ActualRssi:  %d, energyDetectionLevel:  %d, linkQualityIndication:  %d\r\n",
 		     rx_tdma_fd.actualRssi,
 		     rx_tdma_fd.energyDetectionLevel,
 		     rx_tdma_fd.linkQualityIndication);
@@ -167,7 +168,7 @@ void rx_task ()
 		for (i = 0; i < len; i++)
 		printf ("%c ", rx_buf[i]);
 		printf ("\r\n");
-		
+		*/
 		}
 	}	
 
@@ -200,13 +201,14 @@ void tx_task ()
     nrk_time_get(&cur_time);
     //Set the GPIO high so the IMU hands over data.
     nrk_gpio_set(NRK_PORTB_3); 
+    
     tx_buf[0]=MAC_ADDRESS;
     i = 0;  
     flag = 0; 
     printf("\r\n"); 
     do{
       tmp = getc1();
-      //printf("%c", tmp); 
+      printf("%c", tmp); 
       nrk_gpio_clr(NRK_PORTB_3); 
       if(tmp == '*')
         flag = 1; 
@@ -215,8 +217,9 @@ void tx_task ()
       if((tmp <= '9' && tmp >= '0') || tmp == ',' || 
         tmp == '.' || tmp == '-' || (tmp >= 'a' && tmp <= 'z')
         || tmp == '*'/* || tmp == '#'*/){
-        if(i >=4){
-          printf("%c",tmp); 
+      // printf("%c",tmp); 
+       if(i >=4){
+      //    printf("%c",tmp); 
         }
         tx_buf[i] = tmp; 
         i++; 
@@ -224,29 +227,35 @@ void tx_task ()
         if(i ==4){
           tx_buf[4] == '\0'; 
           //Exit loop if start str found
-    //			printf("-%s-|%s|<Testing! %d>",start_str,tx_buf,
-    //							strncmp(start_str, tx_buf,4)); 
           if(strncmp(start_str, tx_buf, 4)){
              
             //Make sure not to send anything
             i = 0; 
             break; 
           }
+          nrk_led_clr(RED_LED); 
         }
       }
     }while(tmp != '#'); 
     printf("\r\n"); 
+    
     //Don't transmit if we don't have a full packet 
     if(i < 30){
       sprintf(tx_buf, "Damn, no data!");
       i = strlen(tx_buf);  
-      //memset(tx_buf, 0, TDMA_MAX_PKT_SIZE); 
-     // continue; 
+      memset(tx_buf, 0, TDMA_MAX_PKT_SIZE); 
+      continue; 
+      nrk_led_set(RED_LED); 
     }
-    
-    	len = i - 4;
+    len = i - 4;
 		v = tdma_send (&tx_tdma_fd, tx_buf + 4, len, TDMA_BLOCKING);
-		if (v == NRK_OK) {
+	  nrk_kprintf(PSTR("Sending packet: \r\n")); 
+    //DEBUG CODE FOR LATER!!
+    for(i = 0; i < len; i++)
+      printf("%c",*(tx_buf + 4 + i));
+    printf("\r\n"); 
+    
+    if (v == NRK_OK) {
 			printf("packet sent len=%d \r\n",len);
 		}
 		else { nrk_kprintf(PSTR("Pkt tx error\r\n")); nrk_wait_until_next_period();}
@@ -266,6 +275,7 @@ void nrk_create_taskset ()
   RX_TASK.Type = BASIC_TASK;
   RX_TASK.SchType = PREEMPTIVE;
 	RX_TASK.period.secs = 0;
+ //Note, this were notched down further, and things kinda went haywire. 
   RX_TASK.period.nano_secs = 250* NANOS_PER_MS;
 	RX_TASK.cpu_reserve.secs = 1;
   RX_TASK.cpu_reserve.nano_secs = 50* NANOS_PER_MS;

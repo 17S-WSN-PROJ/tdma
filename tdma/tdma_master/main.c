@@ -111,7 +111,7 @@ cnt=0;
   //       v=tdma_send(&tx_tdma_fd, &slip_rx_buf, v, TDMA_BLOCKING );  
   // } else ack_buf[0]='N';
   // slip_tx(ack_buf, 1);
-  sprintf(&slip_rx_buf,"Kaan Emre Dogrusoz\r\n");
+  sprintf(&slip_rx_buf,"Test\r\n");
   len = strlen(slip_rx_buf)+1;
   v=tdma_send(&tx_tdma_fd, &slip_rx_buf, len, TDMA_BLOCKING ); 
   nrk_led_toggle(BLUE_LED);
@@ -157,7 +157,8 @@ tdma_init(TDMA_HOST, chan, mac_address);
 
 // Change these parameters anytime you want...
 tdma_set_slot_len_ms(10);
-tdma_set_slots_per_cycle(5);
+tdma_set_slots_per_cycle(7);
+//TODO figure out what ttl_set is...
 tdma_ttl_set(3);
 
 tdma_aes_setkey(aes_key);
@@ -175,12 +176,18 @@ while(1) {
   nrk_led_set(ORANGE_LED);
   if(v==NRK_OK)
   {
-    printf ("src: %u\r\nrssi: %d\r\n", rx_tdma_fd.src, rx_tdma_fd.rssi);
+    /*printf ("src: %u\r\nrssi: %d\r\n", rx_tdma_fd.src, rx_tdma_fd.rssi);
     printf ("slot: %u\r\n", rx_tdma_fd.slot);
     printf ("cycle len: %u\r\n", rx_tdma_fd.cycle_size);
-    printf ("len: %u\r\npayload: ", len);
-    for (i = 0; i < len; i++)
-      printf ("%c", slip_tx_buf[i]);
+    */
+    
+    printf("%u, ",rx_tdma_fd.slot); 
+    for (i = 0; i < len; i++){
+      char cur; 
+      cur = slip_tx_buf[i]; 
+      if((cur >= '0' && cur <= '9') || cur == ',' || cur == '-' || cur =='.')
+        printf ("%c", cur);
+    }
     printf ("\r\n");
     nrk_led_set(BLUE_LED);
             
@@ -201,10 +208,11 @@ nrk_create_taskset()
   rx_task_info.Type = BASIC_TASK;
   rx_task_info.SchType = PREEMPTIVE;
   
+  /*TODO tighten these up- spend more time in RX and way less in TX!*/
   rx_task_info.period.secs = 0;
   rx_task_info.period.nano_secs = 250*NANOS_PER_MS;
   rx_task_info.cpu_reserve.secs = 0;
-  rx_task_info.cpu_reserve.nano_secs = 100*NANOS_PER_MS;
+  rx_task_info.cpu_reserve.nano_secs = 200*NANOS_PER_MS;//100*NANOS_PER_MS;//250*NANOS_PER_MS;
  /* 
   rx_task_info.period.secs = 0;
   rx_task_info.period.nano_secs = 250*NANOS_PER_MS;
