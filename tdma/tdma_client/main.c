@@ -40,10 +40,10 @@
 // if SET_MAC is 0, then read MAC from EEPROM
 // otherwise use the coded value
 #define DEFAULT_CHANNEL  	26
-#define MAC_ADDRESS		0x2
+#define MAC_ADDRESS		0x3
 //TODO: shorten this futher... we're still missing points from the IMU anyway
 #define HOLD_TIME 50//100//50
-
+#define HALTS_ALLOWED 25
 
 uint8_t sbuf[4];
 tdma_info tx_tdma_fd;
@@ -74,8 +74,8 @@ uint8_t aes_key[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb
 int8_t tdma_error(uint16_t cons_err_cnt)
 {
 
-  if(tdma_sync_ok()==0 && cons_err_cnt>50 )  nrk_led_set(RED_LED);
-  else nrk_led_clr(RED_LED);
+  if(tdma_sync_ok()==0 && cons_err_cnt>50 )  nrk_led_set(ORANGE_LED);
+  else nrk_led_clr(ORANGE_LED);
 
   // If there has been enough cycles without sync then snooze  
   if(cons_err_cnt>400) {
@@ -181,6 +181,7 @@ void tx_task ()
 	uint8_t j, i, val, cnt;
 	int8_t len;
 	int8_t v,fd;
+  uint16_t halt_cnt;
 	nrk_sig_mask_t ret;
 	nrk_time_t t;
   uint8_t flag = 0;
@@ -193,7 +194,7 @@ void tx_task ()
 		
   nrk_gpio_set(NRK_PORTB_3); 
 	while (1) {
-		nrk_led_clr(RED_LED);
+		//nrk_led_clr(RED_LED);
 	  //Implement a slight delay so we definitely get data from the IMU... 
     nrk_led_clr(GREEN_LED); 
     delay(HOLD_TIME); 
@@ -240,7 +241,6 @@ void tx_task ()
       }
     }while(tmp != '#'); 
     printf("\r\n"); 
-    
     //Don't transmit if we don't have a full packet 
     if(i < 30){
       sprintf(tx_buf, "Damn, no data!");
@@ -248,7 +248,13 @@ void tx_task ()
       memset(tx_buf, 0, TDMA_MAX_PKT_SIZE); 
       continue; 
       nrk_led_set(RED_LED); 
+      halt_cnt++; 
+      if(halt_cnt > HALTS_ALLOWED){
+        halt_cnt = 0; 
+        nkr_halt(); 
+      }
     }
+    halt_cnt = 0; 
     len = i - 4;
 		v = tdma_send (&tx_tdma_fd, tx_buf + 4, len, TDMA_BLOCKING);
 	  nrk_kprintf(PSTR("Sending packet: \r\n")); 

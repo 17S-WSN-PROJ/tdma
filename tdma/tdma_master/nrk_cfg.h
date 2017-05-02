@@ -10,7 +10,7 @@
 //#define NRK_LOG_ERRORS
 //#define NRK_ERROR_EEPROM_INDEX	0x200
 
-#define NRK_REPORT_ERRORS
+//#define NRK_REPORT_ERRORS
 // NRK_HALT_ON_ERRORS will cause the kernel to freeze on errors so that
 // it is easier to see debugging messages.
 //#define NRK_HALT_AND_LOOP_ON_ERROR
