@@ -209,14 +209,16 @@ void tx_task ()
     do{
       tmp = getc1();
       printf("%c", tmp); 
-      nrk_gpio_clr(NRK_PORTB_3); 
+      //nrk_gpio_clr(NRK_PORTB_3); 
       if(tmp == '*')
-        flag = 1; 
+      {  flag = 1; 
+         nrk_gpio_clr(NRK_PORTB_3); 
+      }
       if(!flag)
         continue; 
       if((tmp <= '9' && tmp >= '0') || tmp == ',' || 
         tmp == '.' || tmp == '-' || (tmp >= 'a' && tmp <= 'z')
-        || tmp == '*'/* || tmp == '#'*/){
+        || tmp == '*' || tmp == '#'){
       // printf("%c",tmp); 
        if(i >=4){
       //    printf("%c",tmp); 

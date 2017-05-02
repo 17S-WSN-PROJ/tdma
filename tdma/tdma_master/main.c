@@ -89,7 +89,7 @@ int8_t v,i;
 uint8_t len,cnt;
 uint8_t ack_buf[2];
   
-printf( "Gateway Tx Task PID=%u\r\n",nrk_get_pid());
+//printf( "Gateway Tx Task PID=%u\r\n",nrk_get_pid());
 
   // send at startup to cope with empty network and rebooting
   ack_buf[0]='N';
@@ -127,11 +127,13 @@ uint8_t len,i,chan;
 
 
 cnt=0;
+/*
 nrk_kprintf( PSTR("Nano-RK Version ") );
 printf( "%d\r\n",NRK_VERSION );
 
   
 printf( "Gateway Task PID=%u\r\n",nrk_get_pid());
+*/
 t.secs=30;
 t.nano_secs=0;
 
@@ -145,12 +147,13 @@ nrk_sw_wdt_start(0);
 
   chan = DEFAULT_CHANNEL;
   mac_address = HOST_MAC;
-
+/*
   printf ("MAC ADDR: %x\r\n", mac_address & 0xffff);
   printf ("chan = %d\r\n", chan);
+*/
   len=0;
   for(i=0; i<16; i++ ) { len+=aes_key[i]; }
-  printf ("AES checksum = %d\r\n", len);
+  //printf ("AES checksum = %d\r\n", len);
 
 
 tdma_init(TDMA_HOST, chan, mac_address);
@@ -170,7 +173,7 @@ last_mac=0;
 
 while(!tdma_started()) nrk_wait_until_next_period();
   nrk_led_set(GREEN_LED);
-  
+int commas; 
 while(1) {
   v=tdma_recv(&rx_tdma_fd, &slip_tx_buf, &len, TDMA_BLOCKING ); 
   nrk_led_set(ORANGE_LED);
@@ -181,13 +184,23 @@ while(1) {
     printf ("cycle len: %u\r\n", rx_tdma_fd.cycle_size);
     */
     
-    printf("%u, ",rx_tdma_fd.slot); 
-    for (i = 0; i < len; i++){
-      char cur; 
+    char cur = 'a'; 
+    commas = 0; 
+    for (i = 0; i < len && cur != '#'; i++){
       cur = slip_tx_buf[i]; 
+      if(cur == ',')
+        commas++; 
       if((cur >= '0' && cur <= '9') || cur == ',' || cur == '-' || cur =='.')
-        printf ("%c", cur);
+      {   //printf ("%c", cur);
+       }
+      else
+        break; 
     }
+    if(commas != 7)
+      continue; 
+    printf("%u, ",rx_tdma_fd.slot); 
+    slip_tx_buf[i] = '\0'; 
+    printf("%s",slip_tx_buf); 
     printf ("\r\n");
     nrk_led_set(BLUE_LED);
             
