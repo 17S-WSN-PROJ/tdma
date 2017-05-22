@@ -1,0 +1,46 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+DEFAULT_CHANNEL	main.c	42;"	d	file:
+EXTRAINCDIRS	makefile	/^EXTRAINCDIRS =$/;"	m
+IGNORE_BROWN_OUT_ERROR	nrk_cfg.h	18;"	d
+IGNORE_EXT_RST_ERROR	nrk_cfg.h	17;"	d
+MAC_ADDRESS	main.c	43;"	d	file:
+NRK_APP_STACKSIZE	nrk_cfg.h	52;"	d
+NRK_KERNEL_STACKSIZE	nrk_cfg.h	53;"	d
+NRK_MAX_DRIVER_CNT	nrk_cfg.h	42;"	d
+NRK_MAX_RESOURCE_CNT	nrk_cfg.h	43;"	d
+NRK_MAX_SW_WDT	nrk_cfg.h	27;"	d
+NRK_MAX_TASKS	nrk_cfg.h	49;"	d
+NRK_REBOOT_ON_ERROR	nrk_cfg.h	15;"	d
+NRK_REPORT_ERRORS	nrk_cfg.h	10;"	d
+NRK_STACK_CHECK	nrk_cfg.h	22;"	d
+NRK_SW_WDT	nrk_cfg.h	25;"	d
+NRK_TASK_IDLE_STK_SIZE	nrk_cfg.h	51;"	d
+NRK_WATCHDOG	nrk_cfg.h	16;"	d
+PLATFORM	makefile	/^PLATFORM = firefly3$/;"	m
+PROGRAMMING_PORT	makefile	/^PROGRAMMING_PORT = \/dev\/ttyUSB0$/;"	m
+ROOT_DIR	makefile	/^ROOT_DIR = ..\/..$/;"	m
+RX_TASK	main.c	/^nrk_task_type RX_TASK;$/;"	v
+SRC	makefile	/^SRC = $(TARGET).c$/;"	m
+TARGET	makefile	/^TARGET = main$/;"	m
+TX_TASK	main.c	/^nrk_task_type TX_TASK;$/;"	v
+__nrk_cfg_h	nrk_cfg.h	6;"	d
+aes_key	main.c	/^uint8_t aes_key[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee, 0xff};$/;"	v
+mac_address	main.c	/^uint32_t mac_address;$/;"	v
+main	main.c	/^int main ()$/;"	f
+nrk_create_taskset	main.c	/^void nrk_create_taskset ()$/;"	f
+rx_buf	main.c	/^uint8_t rx_buf[TDMA_MAX_PKT_SIZE];$/;"	v
+rx_task	main.c	/^void rx_task ()$/;"	f
+rx_task_stack	main.c	/^NRK_STK rx_task_stack[NRK_APP_STACKSIZE];$/;"	v
+rx_tdma_fd	main.c	/^tdma_info rx_tdma_fd;$/;"	v
+sbuf	main.c	/^uint8_t sbuf[4];$/;"	v
+serial_buf	main.c	/^uint8_t serial_buf[TDMA_MAX_PKT_SIZE]; $/;"	v
+tdma_error	main.c	/^int8_t tdma_error(uint16_t cons_err_cnt)$/;"	f
+tx_buf	main.c	/^uint8_t tx_buf[TDMA_MAX_PKT_SIZE];$/;"	v
+tx_task	main.c	/^void tx_task ()$/;"	f
+tx_task_stack	main.c	/^NRK_STK tx_task_stack[NRK_APP_STACKSIZE];$/;"	v
+tx_tdma_fd	main.c	/^tdma_info tx_tdma_fd;$/;"	v

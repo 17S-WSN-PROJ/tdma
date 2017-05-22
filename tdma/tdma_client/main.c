@@ -39,11 +39,11 @@
 
 // if SET_MAC is 0, then read MAC from EEPROM
 // otherwise use the coded value
-#define DEFAULT_CHANNEL  	26
-#define MAC_ADDRESS		0x3
+#define DEFAULT_CHANNEL  	11
+#define MAC_ADDRESS		0x5
 //TODO: shorten this futher... we're still missing points from the IMU anyway
 #define HOLD_TIME 50//100//50
-#define HALTS_ALLOWED 25
+#define HALTS_ALLOWED 10
 
 uint8_t sbuf[4];
 tdma_info tx_tdma_fd;
@@ -72,9 +72,11 @@ uint8_t aes_key[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb
 // This function gets called in a loop if sync is lost.
 // It is passed a counter indicating how long it has gone since the last synchronization.
 int8_t tdma_error(uint16_t cons_err_cnt)
-{
+{ uint8_t test; 
 
-  if(tdma_sync_ok()==0 && cons_err_cnt>50 )  nrk_led_set(ORANGE_LED);
+  if(tdma_sync_ok()==0 && cons_err_cnt>50 )  
+   test = 0; 
+  //  nrk_led_set(ORANGE_LED);
   else nrk_led_clr(ORANGE_LED);
 
   // If there has been enough cycles without sync then snooze  
@@ -159,7 +161,15 @@ void rx_task ()
 	while (1) {
 		v = tdma_recv (&rx_tdma_fd, &rx_buf, &len, TDMA_BLOCKING);
 		if (v == NRK_OK) {
-
+        if(rx_buf[0] == 'R'){
+          nrk_led_set(BLUE_LED); 
+          nrk_kprintf("Got kill command!\r\n"); 
+          putc1('a'); 
+         // nrk_halt(); 
+        }
+        else{
+          nrk_led_clr(BLUE_LED); 
+        }
 	/*	printf("ActualRssi:  %d, energyDetectionLevel:  %d, linkQualityIndication:  %d\r\n",
 		     rx_tdma_fd.actualRssi,
 		     rx_tdma_fd.energyDetectionLevel,
@@ -251,7 +261,7 @@ void tx_task ()
       halt_cnt++; 
       if(halt_cnt > HALTS_ALLOWED){
         halt_cnt = 0; 
-        nkr_halt(); 
+        nrk_halt(); 
       }
     }
     halt_cnt = 0; 
@@ -265,9 +275,12 @@ void tx_task ()
     
     if (v == NRK_OK) {
 			printf("packet sent len=%d \r\n",len);
-		}
+		  nrk_led_clr(RED_LED); 
+    }
 		else { nrk_kprintf(PSTR("Pkt tx error\r\n")); nrk_wait_until_next_period();}
-	}
+		  nrk_led_set(RED_LED); 
+
+  }
 }
 
 

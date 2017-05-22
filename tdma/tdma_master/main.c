@@ -36,7 +36,7 @@
 #include <nrk_eeprom.h>
 
 #define HOST_MAC 0x0
-#define DEFAULT_CHANNEL   26  
+#define DEFAULT_CHANNEL   11
 
 #define SLIPSTREAM_ACK
 
@@ -85,22 +85,35 @@ main ()
 
 void tx_task()
 {
-int8_t v,i;
-uint8_t len,cnt;
+int8_t v,i,val;
+uint8_t len,cnt,got_button;
 uint8_t ack_buf[2];
   
 //printf( "Gateway Tx Task PID=%u\r\n",nrk_get_pid());
-
+  nrk_gpio_direction(NRK_BUTTON,NRK_PIN_INPUT); 
   // send at startup to cope with empty network and rebooting
   ack_buf[0]='N';
   // slip_tx(ack_buf, 1);
 cnt=0;
-
+got_button = 0; 
   while(1) {
   // This is simply a place holder in case you want to add Host -> Client Communication
   // v = slip_rx ( slip_rx_buf, TDMA_MAX_PKT_SIZE);
   // if (v > 0) {
-       
+  val = nrk_gpio_get(NRK_BUTTON);
+  if(val == 0 && got_button == 0){
+    nrk_led_set(BLUE_LED); 
+    sprintf(slip_rx_buf,"RESET\0"); 
+    got_button = 1; 
+    nrk_kprintf (PSTR ("Sending data: "));
+  }
+  else
+  { if(val)
+      got_button = 0; 
+      
+    nrk_led_clr(BLUE_LED); 
+     sprintf(&slip_rx_buf,"Test\r\n");
+  }
   //      ack_buf[0]='A';
   //      nrk_kprintf (PSTR ("Sending data: "));
   //      for (i = 0; i < v; i++)
@@ -111,11 +124,11 @@ cnt=0;
   //       v=tdma_send(&tx_tdma_fd, &slip_rx_buf, v, TDMA_BLOCKING );  
   // } else ack_buf[0]='N';
   // slip_tx(ack_buf, 1);
-  sprintf(&slip_rx_buf,"Test\r\n");
+  
   len = strlen(slip_rx_buf)+1;
   v=tdma_send(&tx_tdma_fd, &slip_rx_buf, len, TDMA_BLOCKING ); 
-  nrk_led_toggle(BLUE_LED);
   }
+
 }
 
 void rx_task()
